@@ -1,0 +1,52 @@
+jenkins: # Рівень 0
+  controller: # Рівень 1 (все вкладено сюди)
+    image:
+      registry: "docker.io"
+      repository: "jenkins/jenkins"
+      tag: "2.479.1-jdk21"
+    
+    # Контейнери ініціалізації (Рівень 2)
+    # NOTE: Jenkins subchart expects `customInitContainers` (not `initContainers`)
+    customInitContainers:
+      - name: copy-dsl-scripts
+        image: busybox:1.36.1
+        imagePullPolicy: IfNotPresent
+        command: 
+          - "sh"
+          - "-c"
+          - |
+            mkdir -p /var/jenkins_home/dsl_scripts
+            cp -v /tmp/scripts/*.groovy /var/jenkins_home/dsl_scripts/
+            ls -l /var/jenkins_home/dsl_scripts
+        volumeMounts:
+          - name: jenkins-home
+            mountPath: /var/jenkins_home
+          - name: scripts-source
+            mountPath: /tmp/scripts
+
+    # Плагіни (Рівень 2)
+    installPlugins:
+      - kubernetes
+      - workflow-aggregator
+      - git
+      - configuration-as-code
+      - job-dsl
+      - matrix-auth
+      - role-strategy
+      - folder-properties
+      - validating-string-parameter
+
+    # Налаштування як код (Рівень 2)
+    JCasC:
+      defaultConfig: true
+      configScripts:
+        jobs: |
+          jobs:
+            - file: "/var/jenkins_home/dsl_scripts/setup.groovy"
+
+  # Додаткові томи (Рівень 1) — Jenkins subchart reads these from `persistence.volumes`
+  persistence:
+    volumes:
+      - name: scripts-source
+        configMap:
+          name: jenkins-external-jobs
