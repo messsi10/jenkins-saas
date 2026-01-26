@@ -1,0 +1,6 @@
+# Local Helm render artifacts (generated for debugging)
+debug.yaml
+rendered.yaml
+
+# Local scratch dir used when inspecting the bundled subchart
+.charttmp/
