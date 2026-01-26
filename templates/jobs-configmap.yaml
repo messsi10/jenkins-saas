@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jenkins-external-jobs
+  namespace: {{ .Release.Namespace }}
+data:
+{{- (.Files.Glob "scripts/*.groovy").AsConfig | nindent 2 }}
