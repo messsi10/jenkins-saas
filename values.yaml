@@ -4,6 +4,13 @@ jenkins: # Рівень 0
       registry: "docker.io"
       repository: "jenkins/jenkins"
       tag: "2.479.1-jdk21"
+    resources:
+      requests:
+        cpu: "200m"
+        memory: "1Gi"
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
     
     # Контейнери ініціалізації (Рівень 2)
     # NOTE: Jenkins subchart expects `customInitContainers` (not `initContainers`)
@@ -11,6 +18,13 @@ jenkins: # Рівень 0
       - name: copy-dsl-scripts
         image: busybox:1.36.1
         imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "128Mi"
+          limits:
+            cpu: "100m"
+            memory: "256Mi"
         command: 
           - "sh"
           - "-c"
