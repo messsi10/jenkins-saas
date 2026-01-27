@@ -40,15 +40,15 @@ jenkins: # Рівень 0
 
     # Плагіни (Рівень 2)
     installPlugins:
-      - kubernetes
-      - workflow-aggregator
-      - git
-      - configuration-as-code
-      - job-dsl
-      - matrix-auth
-      - role-strategy
-      - folder-properties
-      - validating-string-parameter
+      - kubernetes:4313.va_9b_4fe2a_0e34
+      - workflow-aggregator:600.vb_57cdd26fdd7
+      - git:5.7.0
+      - configuration-as-code:1932.v75cb_b_f1b_698d
+      - job-dsl:1.90
+      - matrix-auth:3.2.6
+      - role-strategy:756.v978cb_392eb_d3
+      - folder-properties:62.v1636b_4a_84608
+      - validating-string-parameter:255.v31e2e6d0d273
 
     # Secrets from existing Kubernetes Secret, available in JCasC as:
     # ${jenkins-test-creds-test-token}, ${jenkins-test-creds-test-login}, ${jenkins-test-creds-test-password}
