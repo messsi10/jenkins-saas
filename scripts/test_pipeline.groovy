@@ -1,9 +1,23 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: helm-tools
+    image: alpine/helm:3.12.0
+    command:
+    - sleep
+    args:
+    - infinity
+'''
+        }
+    }
 
     parameters {
-        // Обов'язково використовуємо SSH URL: git@github.com:USER/REPO.git
-        string(name: 'REPO_URL', defaultValue: 'git@github.com:smeleshchyk/socketio-test.git', description: 'Git repo SSH URL')
+        string(name: 'REPO_URL', defaultValue: 'git@github.com:messsi10/socketio-test.git', description: 'Git repo SSH URL')
         string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'NAMESPACE', defaultValue: 'socketio-namespace', description: 'Kubernetes namespace')
         string(name: 'RELEASE_NAME', defaultValue: 'socketio', description: 'Helm release name')
@@ -15,39 +29,44 @@ pipeline {
                 sh 'rm -rf *'
             }
         }
+        stage('Install Helm') {
+          steps {
+            sh '''
+              curl -fsSL https://get.helm.sh/helm-v3.20.0-linux-arm64.tar.gz -o helm.tgz
+              tar -xzf helm.tgz
+              mv linux-arm64/helm $HOME/helm
+              chmod +x $HOME/helm
+              export PATH=$HOME:$PATH
+              helm version
+            '''
+          }
+        }
+
+
 
         stage('Checkout') {
             steps {
-                // Цей блок потребує плагіна "SSH Agent Plugin"
-                sshagent(['github-ssh-key']) {
-                    sh '''
-                        mkdir -p repo
-                        # Вимикаємо перевірку хоста через прапорець SSH
-                        export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
-                        git clone --single-branch --branch "${BRANCH}" "${REPO_URL}" repo
-                    '''
-                }
+                // Використовуємо нативний крок git, який у тебе вже запрацював
+                git branch: params.BRANCH, 
+                    credentialsId: 'github-ssh-key', 
+                    url: params.REPO_URL
             }
         }
 
         stage('Helm install/upgrade') {
             steps {
-                dir('repo') {
-                    sh '''
+                // Виконуємо команди всередині контейнера, де Є helm
+                container('helm-tools') {
+                    sh """
                         set -e
-                        echo "Deploying to Minikube..."
+                        echo "Початок деплою у Minikube..."
                         
-                        if [ -d "./socketio-chart" ]; then
-                            helm upgrade --install "${RELEASE_NAME}" ./socketio-chart \
-                                --namespace "${NAMESPACE}" \
-                                --create-namespace \
-                                --wait
-                        else
-                            echo "Error: Directory ./socketio-chart not found!"
-                            ls -R
-                            exit 1
-                        fi
-                    '''
+                        # Оскільки Chart.yaml лежить прямо в корені репо
+                        helm upgrade --install "${params.RELEASE_NAME}" . \
+                            --namespace "${params.NAMESPACE}" \
+                            --create-namespace \
+                            --wait
+                    """
                 }
             }
         }
