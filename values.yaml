@@ -43,6 +43,9 @@ jenkins: # Рівень 0
       - kubernetes:4313.va_9b_4fe2a_0e34
       - workflow-aggregator:600.vb_57cdd26fdd7
       - git:5.7.0
+      - workflow-scm-step
+      - git-client
+      - ssh-agent
       - configuration-as-code:1932.v75cb_b_f1b_698d
       - job-dsl:1.90
       - matrix-auth:3.2.6
@@ -59,6 +62,12 @@ jenkins: # Рівень 0
         keyName: test-login
       - name: jenkins-test-creds
         keyName: test-password
+      # SSH Username with private key (will be available in JCasC as:
+      # ${github-ssh-key-username}, ${github-ssh-key-private-key}, ${github-ssh-key-passphrase})
+      - name: github-ssh-key
+        keyName: username
+      - name: github-ssh-key
+        keyName: private-key
 
     # Налаштування як код (Рівень 2)
     JCasC:
@@ -81,6 +90,15 @@ jenkins: # Рівень 0
                         scope: GLOBAL
                         username: "${jenkins-test-creds-test-login}"
                         password: "${jenkins-test-creds-test-password}"
+                    - basicSSHUserPrivateKey:
+                        id: "github-ssh-key"
+                        scope: GLOBAL
+                        username: "${github-ssh-key-username}"
+                        privateKeySource:
+                          directEntry:
+                            privateKey: "${github-ssh-key-private-key}"
+                        # optional (can be removed if not used)
+                        passphrase: "${github-ssh-key-passphrase}"
         jobs: |
           jobs:
             - file: "/var/jenkins_home/dsl_scripts/setup.groovy"
