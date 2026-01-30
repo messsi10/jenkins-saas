@@ -76,7 +76,8 @@ jenkins: # Рівень 0
         security: |
           security:
             gitHostKeyVerificationConfiguration:
-              sshHostKeyVerificationStrategy: "acceptFirstConnection"
+              sshHostKeyVerificationStrategy:
+                acceptFirstConnectionStrategy: {}
         credentials: |
           credentials:
             system:
