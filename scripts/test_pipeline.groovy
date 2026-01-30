@@ -21,6 +21,8 @@ spec:
         string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'NAMESPACE', defaultValue: 'socketio-namespace', description: 'Kubernetes namespace')
         string(name: 'RELEASE_NAME', defaultValue: 'socketio', description: 'Helm release name')
+        string(name: 'IMAGE_REPOSITORY', defaultValue: 'smeleshchyk/socketio-test', description: 'Docker image repository')
+        string(name: 'IMAGE_TAG', defaultValue: '0.0.2', description: 'Docker image tag')
     }
 
     stages {
@@ -65,6 +67,8 @@ spec:
                         helm upgrade --install "${params.RELEASE_NAME}" . \
                             --namespace "${params.NAMESPACE}" \
                             --create-namespace \
+                            --set image.repository="${params.IMAGE_REPOSITORY}" \
+                            --set image.tag="${params.IMAGE_TAG}" \
                             --wait
                     """
                 }
