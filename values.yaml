@@ -73,6 +73,10 @@ jenkins: # Рівень 0
     JCasC:
       defaultConfig: true
       configScripts:
+        security: |
+          security:
+            gitHostKeyVerificationConfiguration:
+              sshHostKeyVerificationStrategy: "acceptFirstConnection"
         credentials: |
           credentials:
             system:
