@@ -17,8 +17,8 @@ spec:
     }
 
     parameters {
-        string(name: 'REPO_URL', defaultValue: 'git@github.com:messsi10/socketio-test.git', description: 'Git repo SSH URL')
-        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch')
+        string(name: 'HELM_REPO_URL', defaultValue: 'git@github.com:messsi10/socketio-test.git', description: 'Git repo SSH URL')
+        string(name: 'HELM_REPO_BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'CONFIG_REPO_URL', defaultValue: 'git@github.com:messsi10/configuration-repo.git', description: 'Config repo SSH URL (contains env values)')
         string(name: 'CONFIG_BRANCH', defaultValue: 'main', description: 'Config repo branch')
         choice(name: 'ENV', choices: ['dev', 'prod'], description: 'Deployment environment (selects values file)')
@@ -37,7 +37,7 @@ spec:
                 // Використовуємо нативний крок git, який у тебе вже запрацював
                 git branch: params.BRANCH, 
                     credentialsId: 'github-ssh-key', 
-                    url: params.REPO_URL
+                    url: params.HELM_REPO_URL
             }
         }
 
