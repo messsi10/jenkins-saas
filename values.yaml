@@ -43,9 +43,10 @@ jenkins: # Рівень 0
       - kubernetes:4313.va_9b_4fe2a_0e34
       - workflow-aggregator:600.vb_57cdd26fdd7
       - git:5.7.0
-      - workflow-scm-step
-      - git-client
-      - ssh-agent
+      - workflow-scm-step:437.v05a_f66b_e5ef8
+      - git-client:6.1.0
+      - ssh-agent:386.v36cc0c7582f0
+      - pipeline-utility-steps:2.16.2
       - configuration-as-code:1932.v75cb_b_f1b_698d
       - job-dsl:1.90
       - matrix-auth:3.2.6

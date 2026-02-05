@@ -21,8 +21,6 @@ spec:
         string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'NAMESPACE', defaultValue: 'socketio-namespace', description: 'Kubernetes namespace')
         string(name: 'RELEASE_NAME', defaultValue: 'socketio', description: 'Helm release name')
-        string(name: 'IMAGE_REPOSITORY', defaultValue: 'smeleshchyk/socketio-test', description: 'Docker image repository')
-        string(name: 'IMAGE_TAG', defaultValue: '0.0.2', description: 'Docker image tag')
     }
 
     stages {
@@ -31,21 +29,6 @@ spec:
                 sh 'rm -rf *'
             }
         }
-        stage('Install Helm') {
-          steps {
-            sh '''
-              curl -fsSL https://get.helm.sh/helm-v3.20.0-linux-arm64.tar.gz -o helm.tgz
-              tar -xzf helm.tgz
-              mv linux-arm64/helm $HOME/helm
-              chmod +x $HOME/helm
-              export PATH=$HOME:$PATH
-              helm version
-            '''
-          }
-        }
-
-
-
         stage('Checkout') {
             steps {
                 // Використовуємо нативний крок git, який у тебе вже запрацював
@@ -54,7 +37,15 @@ spec:
                     url: params.REPO_URL
             }
         }
-
+        stage('Load values.yaml') {
+        steps {
+            script {
+            def v = readYaml file: 'values.yaml'        // або 'chart/values.yaml'
+            env.IMAGE_TAG_FROM_VALUES = (v?.image?.tag ?: '0.0.1').toString()
+            env.IMAGE_REPO_FROM_VALUES = (v?.image?.repository ?: 'smeleshchyk/socketio-test').toString()
+                   }
+            }
+        }
         stage('Helm install/upgrade') {
             steps {
                 // Виконуємо команди всередині контейнера, де Є helm
@@ -67,8 +58,8 @@ spec:
                         helm upgrade --install "${params.RELEASE_NAME}" . \
                             --namespace "${params.NAMESPACE}" \
                             --create-namespace \
-                            --set image.repository="${params.IMAGE_REPOSITORY}" \
-                            --set image.tag="${params.IMAGE_TAG}" \
+                            --set image.repository="${env.IMAGE_REPO_FROM_VALUES}" \
+                            --set image.tag="${env.IMAGE_TAG_FROM_VALUES}" \
                             --wait
                     """
                 }
