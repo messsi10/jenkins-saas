@@ -50,16 +50,6 @@ spec:
                 }
             }
         }
-        stage('Load values.yaml') {
-        steps {
-            script {
-            def valuesFile = "configuration-repo/socketio-test-service/${params.ENV}-values.yaml"
-            def v = readYaml file: valuesFile
-            env.IMAGE_TAG_FROM_VALUES = (v?.image?.tag ?: '0.0.1').toString()
-            env.IMAGE_REPO_FROM_VALUES = (v?.image?.repository ?: 'smeleshchyk/socketio-test').toString()
-                   }
-            }
-        }
         stage('Helm install/upgrade') {
             steps {
                 // Виконуємо команди всередині контейнера, де Є helm
@@ -72,8 +62,7 @@ spec:
                         helm upgrade --install "${params.RELEASE_NAME}" . \
                             --namespace "${params.NAMESPACE}" \
                             --create-namespace \
-                            --set image.repository="${env.IMAGE_REPO_FROM_VALUES}" \
-                            --set image.tag="${env.IMAGE_TAG_FROM_VALUES}" \
+                            -f "configuration-repo/socketio-test-service/${params.ENV}-values.yaml" \
                             --wait
                     """
                 }
