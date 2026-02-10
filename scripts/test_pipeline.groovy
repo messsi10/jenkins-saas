@@ -20,7 +20,7 @@ spec:
         string(name: 'HELM_REPO_URL', defaultValue: 'git@github.com:messsi10/socketio-test.git', description: 'Git repo SSH URL')
         string(name: 'HELM_REPO_BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'CONFIG_REPO_URL', defaultValue: 'git@github.com:messsi10/configuration-repo.git', description: 'Config repo SSH URL (contains env values)')
-        string(name: 'CONFIG_BRANCH', defaultValue: 'main', description: 'Config repo branch')
+        string(name: 'CONFIG_REPO_BRANCH', defaultValue: 'main', description: 'Config repo branch')
         choice(name: 'ENV', choices: ['dev', 'prod'], description: 'Deployment environment (selects values file)')
         string(name: 'NAMESPACE', defaultValue: 'socketio-namespace', description: 'Kubernetes namespace')
         string(name: 'RELEASE_NAME', defaultValue: 'socketio', description: 'Helm release name')
@@ -34,9 +34,8 @@ spec:
         }
         stage('Checkout') {
             steps {
-                // Використовуємо нативний крок git, який у тебе вже запрацював
-                git branch: params.BRANCH, 
-                    credentialsId: 'github-ssh-key', 
+                git branch: params.HELM_REPO_BRANCH,
+                    credentialsId: 'github-ssh-key',
                     url: params.HELM_REPO_URL
             }
         }
@@ -44,7 +43,7 @@ spec:
         stage('Checkout config repo') {
             steps {
                 dir('configuration-repo') {
-                    git branch: params.CONFIG_BRANCH,
+                    git branch: params.CONFIG_REPO_BRANCH,
                         credentialsId: 'github-ssh-key',
                         url: params.CONFIG_REPO_URL
                 }
