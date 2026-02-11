@@ -21,10 +21,9 @@ spec:
         string(name: 'HELM_REPO_BRANCH', defaultValue: 'main', description: 'Git branch')
         string(name: 'CONFIG_REPO_URL', defaultValue: 'git@github.com:messsi10/configuration-repo.git', description: 'Config repo SSH URL (contains env values)')
         string(name: 'CONFIG_REPO_BRANCH', defaultValue: 'main', description: 'Config repo branch')
-        string(name: 'CONFIG_APP_DIR', defaultValue: 'socketio-test-service', description: 'Subdirectory in configuration-repo (e.g. socketio-test-service or socketio-test-service-2)')
+        string(name: 'SERVICE_NAME', defaultValue: 'default-service', description: 'Subdirectory in configuration-repo (e.g. socketio-test-service or socketio-test-service-2)')
         choice(name: 'ENV', choices: ['dev', 'prod'], description: 'Deployment environment (selects values file)')
-        string(name: 'NAMESPACE', defaultValue: 'socketio-namespace', description: 'Kubernetes namespace')
-        string(name: 'RELEASE_NAME', defaultValue: 'socketio', description: 'Helm release name')
+        string(name: 'NAMESPACE', defaultValue: 'default-namespace', description: 'Kubernetes namespace')
     }
 
     stages {
@@ -79,22 +78,21 @@ spec:
                         echo "Ensuring External Secrets resources exist in namespace ${params.NAMESPACE}..."
                         kubectl get namespace "${params.NAMESPACE}" >/dev/null 2>&1 || kubectl create namespace "${params.NAMESPACE}"
                         # Apply in a stable order: SA -> SecretStore -> ExternalSecret
-                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.CONFIG_APP_DIR}/external-secrets/serviceaccount.yaml"
-                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.CONFIG_APP_DIR}/external-secrets/secretstore.yaml"
-                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.CONFIG_APP_DIR}/external-secrets/externalsecret.yaml"
+                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.SERVICE_NAME}/external-secrets/serviceaccount.yaml"
+                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.SERVICE_NAME}/external-secrets/secretstore.yaml"
+                        kubectl -n "${params.NAMESPACE}" apply -f "configuration-repo/${params.SERVICE_NAME}/external-secrets/externalsecret.yaml"
                         kubectl -n "${params.NAMESPACE}" wait --for=condition=Ready \\
-                          externalsecret/"${params.CONFIG_APP_DIR}-env" --timeout=2m
+                          -f "configuration-repo/${params.SERVICE_NAME}/external-secrets/externalsecret.yaml" --timeout=2m
                         
                         # Оскільки Chart.yaml лежить прямо в корені репо
-                        helm upgrade --install "${params.RELEASE_NAME}" . \
+                        helm upgrade --install "${params.SERVICE_NAME}" . \
                             --namespace "${params.NAMESPACE}" \
                             --create-namespace \
-                            -f "configuration-repo/${params.CONFIG_APP_DIR}/${params.ENV}-values.yaml" \
+                            -f "configuration-repo/${params.SERVICE_NAME}/${params.ENV}-values.yaml" \
                             --wait
 
-                        echo "Rolling restart workloads in ${params.NAMESPACE} for release ${params.RELEASE_NAME}..."
-                        kubectl -n "${params.NAMESPACE}" rollout restart deployment "${params.RELEASE_NAME}" || true
-                        kubectl -n "${params.NAMESPACE}" rollout restart statefulset "${params.RELEASE_NAME}" || true
+                        echo "Rolling restart workloads in ${params.NAMESPACE} for service ${params.SERVICE_NAME}..."
+                        kubectl -n "${params.NAMESPACE}" rollout restart deployment "${params.SERVICE_NAME}" || true
                     """
                 }
             }
