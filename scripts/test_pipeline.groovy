@@ -7,13 +7,7 @@ kind: Pod
 spec:
   containers:
   - name: helm-tools
-    image: alpine/helm:3.12.0
-    command:
-    - sleep
-    args:
-    - infinity
-  - name: kubectl-tools
-    image: bitnami/kubectl:1.34.0
+    image: dtzar/helm-kubectl:3.12.0
     command:
     - sleep
     args:
@@ -84,19 +78,11 @@ spec:
                         # Оскільки Chart.yaml лежить прямо в корені репо
                         helm upgrade --install "${params.RELEASE_NAME}" . \
                             --namespace "${params.NAMESPACE}" \
+                            --create-namespace \
                             -f "configuration-repo/socketio-test-service/${params.ENV}-values.yaml" \
                             --wait
-                    """
-                }
 
-                // Підхоплення оновлених env із Secret (env не оновлюється без рестарту pod)
-                container('kubectl-tools') {
-                    sh """
-                        set -e
                         echo "Rolling restart workloads in ${params.NAMESPACE} for release ${params.RELEASE_NAME}..."
-                        kubectl -n "${params.NAMESPACE}" rollout restart deployment -l "app.kubernetes.io/instance=${params.RELEASE_NAME}" || true
-                        kubectl -n "${params.NAMESPACE}" rollout restart statefulset -l "app.kubernetes.io/instance=${params.RELEASE_NAME}" || true
-                        # fallback (якщо chart не має стандартних labels)
                         kubectl -n "${params.NAMESPACE}" rollout restart deployment "${params.RELEASE_NAME}" || true
                         kubectl -n "${params.NAMESPACE}" rollout restart statefulset "${params.RELEASE_NAME}" || true
                     """
